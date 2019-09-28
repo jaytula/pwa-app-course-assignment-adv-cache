@@ -36,47 +36,52 @@ self.addEventListener("activate", function(event) {
 });
 
 // 1. Identification exercise: Cache with Network fallback
-// self.addEventListener('fetch', function(event) {
-//   event.respondWith(
-//     caches.match(event.request)
-//       .then(function(response) {
-//         if (response) {
-//           return response;
-//         } else {
-//           return fetch(event.request)
-//             .then(function(res) {
-//               return caches.open(CACHE_DYNAMIC_NAME)
-//                 .then(function(cache) {
-//                   cache.put(event.request.url, res.clone());
-//                   return res;
-//                 });
-//             })
-//             .catch(function(err) {
+self.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request)
+      .then(function(response) {
+        if (response) {
+          return response;
+        } else {
+          return fetch(event.request)
+            .then(function(res) {
+              return caches.open(CACHE_DYNAMIC_NAME)
+                .then(function(cache) {
+                  cache.put(event.request.url, res.clone());
+                  return res;
+                });
+            })
+            .catch(function(err) {
 
-//             });
-//         }
-//       })
-//   );
-// });
+            });
+        }
+      })
+  );
+});
 
 // 2. Network only strategy
-// self.addEventListener('fetch', function(event) {
-//   event.respondWith(fetch(event.request));
-// })
+self.addEventListener('fetch', function(event) {
+  event.respondWith(fetch(event.request));
+})
 
 // 3. Cache only
-// self.addEventListener('fetch', function(event) {
-//   event.respondWith(caches.match(event.request));
-// })
+self.addEventListener('fetch', function(event) {
+  event.respondWith(caches.match(event.request));
+})
 
 // 4. Network, cache fallback
-// self.addEventListener("fetch", function(event) {
-//   event.respondWith(
-//     fetch(event.request).catch(() => {
-//       return caches.match(event.request.url);
-//     })
-//   );
-// });
+self.addEventListener("fetch", function(event) {
+  event.respondWith(
+    fetch(event.request).then(res => {
+      return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+        cache.put(event.request.url, res.clone());
+        return res;
+      })
+    }).catch(() => {
+      return caches.match(event.request.url);
+    })
+  );
+});
 
 // 5. Cache, then network
 // self.addEventListener("fetch", function(event) {
